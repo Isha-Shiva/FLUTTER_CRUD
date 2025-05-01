@@ -1,61 +1,34 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
 
-const Product = require("./models/Product");
-
+const express = require('express');
+const cors = require('cors');
 const app = express();
+const PORT = 3000;
+
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/productsdb")
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err.message));
+let products = [];
 
-app.get('/', (req, res) => {
-  res.send('🩵 Hello from backend!');
+app.get('/products', (req, res) => {
+  res.json(products);
 });
 
-app.post('/products', async (req, res) => {
-  try {
-    const product = new Product(req.body);
-    await product.save();
-    res.status(201).json(product);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+app.post('/products', (req, res) => {
+  const product = req.body;
+  products.push(product);
+  res.status(201).json(product);
+});
+
+app.delete('/products/:index', (req, res) => {
+  const index = parseInt(req.params.index);
+  if (index >= 0 && index < products.length) {
+    products.splice(index, 1);
+    res.status(204).send();
+  } else {
+    res.status(404).send('Product not found');
   }
 });
 
-app.get('/products', async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-app.put('/products/:id', async (req, res) => {
-  try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.delete('/products/:id', async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Deleted' });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.listen(3000, '0.0.0.0', () => {
-  console.log('🚀 Server running on http://0.0.0.0:3000');
-});
-
-
-  
