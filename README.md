@@ -1,0 +1,1 @@
+This is a flutter application which performs CRUD operations.
